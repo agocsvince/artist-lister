@@ -34,11 +34,14 @@ const columns = [
 
 export default function ArtistTable({artistList, pagination}:
    {artistList: artistType[], pagination: paginationType}) {
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState(artistList || []);
   const [page, setPage] = useState<number>(pagination.current_page || 0);
   const [perPage, setPerPage] = useState<number>(pagination.per_page || 0);
   const [totalItems, setTotalItems] = useState<number>(pagination.total_items || 0);
   const [filteredData, setFilteredData] = useState<artistType[]>(artistList);
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({
+    items: []
+});
 
   useEffect(() => {
     setPage(pagination.current_page)
@@ -49,16 +52,61 @@ export default function ArtistTable({artistList, pagination}:
   
 
   useEffect(() => {
-    const filtered = artistList.filter((artist) =>
-        artist.name.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    setFilteredData(filtered);
+    setFilteredData(artistList);
   }, [filter, artistList]);
 
-  const handleFilterChange = (model: GridFilterModel) => {
-    console.log(model)
-  }
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const field = queryParams.get("field") || "";
+    const operator = queryParams.get("operator") || "";
+    const value = queryParams.get("filter") || "";
+    if (value) {
+      setFilterModel({
+        items: [
+          {
+            field: field,
+            operator: operator,
+            value: value
+          }
+        ]
+      });
+      }
+  }, []);
+
+  useEffect(() => {
+    const filterValue = filterModel.items.length
+        ? filterModel.items[0].value
+        : "";
+
+    if (!filterValue) {
+      return
+    }
+
+    const filtered = artistList.filter((artist) =>
+        artist.name.toLowerCase().includes(filterValue.toLowerCase())
+    );
+    setFilteredData(filtered);
+}, [artistList, filterModel]);
+
+  const updateURL = (filterModel: GridFilterModel) => {
+    const queryParams = new URLSearchParams(window.location.search);
+    if (filterModel.items.length > 0) {
+        const { field, operator, value } = filterModel.items[0];
+        queryParams.set("filter", value);
+        queryParams.set("field", field);
+        queryParams.set("operator", operator);
+    } else {
+        queryParams.delete("filter");
+        queryParams.delete("field");
+        queryParams.delete("operator");
+    }
+    window.history.pushState(null, "", `?${queryParams.toString()}`);
+  };
+
+  const handleFilterModelChange = (newFilterModel: GridFilterModel) => {
+    setFilterModel(newFilterModel);
+    updateURL(newFilterModel);
+  };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -72,7 +120,7 @@ export default function ArtistTable({artistList, pagination}:
   return (
       <Box sx={{ height: 500, width: "100%" }}>
         <DataGrid
-          onFilterModelChange={(model) => handleFilterChange(model)}
+          onFilterModelChange={(model) => handleFilterModelChange(model)}
           rows={filteredData}
           columns={columns}
           pageSize={perPage}
