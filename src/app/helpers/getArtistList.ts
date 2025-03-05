@@ -11,7 +11,7 @@ export default async function getArtistList() {
       return
     }
   
-    return data
+    return { data, pagination }
   } catch (error) {
     console.error(error)
   }

@@ -8,12 +8,14 @@ type artistType = { id: number, name: string, albumCount: number, portrait: stri
 
 export default function Home() {
   const [artistList, setArtistList] = useState<artistType[]>([])
+  const [pagination, setPagination] = useState<artistType[]>([])
 
   useEffect(() => {
     const getData = async () => {
-      const data = await getArtistList()
+      const { data, pagination } = await getArtistList()
 
       setArtistList(data || [])
+      setPagination(pagination)
     }
 
     getData()
@@ -24,8 +26,8 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="flex flex-col items-center text-white">
-      <ArtistList artistList={artistList}/>
+    <div className="flex flex-col items-center !text-white">
+      <ArtistList artistList={artistList} pagination={pagination}/>
     </div>
   );
 }
