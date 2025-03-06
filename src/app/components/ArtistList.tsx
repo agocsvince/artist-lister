@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { DataGrid, GridFilterModel } from "@mui/x-data-grid";
 import Image from "next/image";
+import getArtistList from "../helpers/getArtistList";
 
 type artistType = { id: number, name: string, albumCount: number, portrait: string}
 type paginationType = {
@@ -11,7 +14,9 @@ type paginationType = {
   total_items: number
 }
 
-const columns = [
+import { GridColDef } from "@mui/x-data-grid";
+
+const columns: GridColDef<artistType>[] = [
   { field: "id", headerName: "ID", width: 90 },
   { field: "name", headerName: "Név", width: 200 },
   { field: "albumCount", headerName: "Albumok száma", width: 120 },
@@ -19,7 +24,7 @@ const columns = [
       field: "portrait",
       headerName: "Portré",
       width: 70,
-      renderCell: (params: { value: string, row: { name: string}}) => (
+      renderCell: (params) => (
           <Image
               src={params.value}
               alt={params.row.name}
@@ -32,28 +37,33 @@ const columns = [
 
 ];
 
-export default function ArtistTable({artistList, pagination}:
-   {artistList: artistType[], pagination: paginationType}) {
-  const [filter, setFilter] = useState(artistList || []);
-  const [page, setPage] = useState<number>(pagination.current_page || 0);
-  const [perPage, setPerPage] = useState<number>(pagination.per_page || 0);
-  const [totalItems, setTotalItems] = useState<number>(pagination.total_items || 0);
-  const [filteredData, setFilteredData] = useState<artistType[]>(artistList);
-  const [filterModel, setFilterModel] = useState<GridFilterModel>({
-    items: []
-});
+export default function ArtistTable() {
+    const [artistList, setArtistList] = useState<artistType[]>([])
+    const [pagination, setPagination] = useState<paginationType>({} as paginationType)
+    const [page, setPage] = useState<number>(pagination.current_page || 1);
+
+    const [filteredData, setFilteredData] = useState<artistType[]>(artistList);
+    const [filterModel, setFilterModel] = useState<GridFilterModel>({
+      items: []
+  });
+
 
   useEffect(() => {
-    setPage(pagination.current_page)
-    setPerPage(pagination.per_page)
-    setTotalItems(pagination.total_items)
-    
-  }, [artistList, pagination])
-  
+    const getData = async () => {
+      const result = await getArtistList(page);
+      const { data, pagination: paginationData = {} } = result || { data: [], pagination: {} };
 
-  useEffect(() => {
-    setFilteredData(artistList);
-  }, [filter, artistList]);
+      setArtistList(data || [])
+      setPagination(paginationData || {})
+    }
+
+    getData()
+    console.log(page)
+
+    return () => {
+      setArtistList([])
+    }
+  }, [page])
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -79,12 +89,14 @@ export default function ArtistTable({artistList, pagination}:
         : "";
 
     if (!filterValue) {
+      setFilteredData(artistList)
       return
     }
 
     const filtered = artistList.filter((artist) =>
         artist.name.toLowerCase().includes(filterValue.toLowerCase())
     );
+
     setFilteredData(filtered);
 }, [artistList, filterModel]);
 
@@ -110,11 +122,7 @@ export default function ArtistTable({artistList, pagination}:
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setPerPage(parseInt(event.target.value, 10));
-    setPage(1);
+    console.log(newPage)
   };
 
   return (
@@ -123,14 +131,12 @@ export default function ArtistTable({artistList, pagination}:
           onFilterModelChange={(model) => handleFilterModelChange(model)}
           rows={filteredData}
           columns={columns}
-          pageSize={perPage}
-          rowsPerPageOptions={[50, 100, 200]}
+          paginationModel={{ page: pagination.current_page - 1, pageSize: pagination.per_page }}
           pagination
           paginationMode="server"
-          onPageChange={(newPage: number) => handlePageChange(newPage + 1)}
-          page={page - 1}
-          rowCount={totalItems}
-          onPageSizeChange={handleRowsPerPageChange}
+          pageSizeOptions={[50]}
+          rowCount={pagination.total_items}
+          onPaginationModelChange={(pageData: { page: number, pageSize: number}) => handlePageChange(pageData.page + 1)}
         />
       </Box>
   );

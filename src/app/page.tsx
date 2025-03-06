@@ -1,33 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ArtistList from "./components/ArtistList";
-import getArtistList from "./helpers/getArtistList";
-
-type artistType = { id: number, name: string, albumCount: number, portrait: string}
 
 export default function Home() {
-  const [artistList, setArtistList] = useState<artistType[]>([])
-  const [pagination, setPagination] = useState<artistType[]>([])
-
-  useEffect(() => {
-    const getData = async () => {
-      const { data, pagination } = await getArtistList()
-
-      setArtistList(data || [])
-      setPagination(pagination)
-    }
-
-    getData()
-  
-    return () => {
-      setArtistList([])
-    }
-  }, [])
-
   return (
     <div className="flex flex-col items-center !text-white">
-      <ArtistList artistList={artistList} pagination={pagination}/>
+      <ArtistList/>
     </div>
   );
 }

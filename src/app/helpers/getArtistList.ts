@@ -1,8 +1,8 @@
-const ARTIST_LIST_URL = "https://exam.api.fotex.net/api/artists?include_image=true&page=1&per_page=50"
+const ARTIST_LIST_URL = "https://exam.api.fotex.net/api/artists?include_image=true&per_page=50"
 
-export default async function getArtistList() {
+export default async function getArtistList(page: number) {
   try {
-    const response = await fetch(ARTIST_LIST_URL)
+    const response = await fetch(`${ARTIST_LIST_URL}&page=${page}`)
     const json = await response.json()
     const { data, pagination } = json
 
