@@ -2,19 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import { DataGrid, GridFilterItem, GridFilterModel } from "@mui/x-data-grid";
+import { DataGrid, GridFilterModel } from "@mui/x-data-grid";
 import Image from "next/image";
 import getArtistList from "../helpers/getArtistList";
 
-type artistType = { id: number, name: string, albumCount: number, portrait: string}
-type paginationType = {
-  current_page: number,
-  total_pages: number,
-  per_page: number,
-  total_items: number
-}
-
 import { GridColDef } from "@mui/x-data-grid";
+import { getFilterModelFromURL, updateURLParams } from "../helpers/handleURLParameter";
+import { artistType, paginationType } from "../constants";
+import filterArtists from "../helpers/filterArtists";
 
 const columns: GridColDef<artistType>[] = [
   { field: "id", headerName: "ID", width: 90 },
@@ -35,19 +30,23 @@ const columns: GridColDef<artistType>[] = [
   }
 ];
 
+const emptyFilterModel = {
+  items: []
+}
+
 export default function ArtistTable() {
     const [artistList, setArtistList] = useState<artistType[]>([])
     const [pagination, setPagination] = useState<paginationType>({} as paginationType)
     const [page, setPage] = useState<number>(pagination.current_page || 1);
 
     const [filteredData, setFilteredData] = useState<artistType[]>(artistList);
-    const [filterModel, setFilterModel] = useState<GridFilterModel>({
-      items: []
-  });
-
+    const [filterModel, setFilterModel] = useState<GridFilterModel>(emptyFilterModel);
 
   useEffect(() => {
     const getData = async () => {
+      const queryParams = new URLSearchParams(window.location.search);
+      const page = Number(queryParams.get("page")) || 1;
+
       const result = await getArtistList(page);
       const { data, pagination: paginationData = {} } = result || { data: [], pagination: {} };
 
@@ -63,10 +62,8 @@ export default function ArtistTable() {
   }, [page])
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const field = queryParams.get("field") || "";
-    const operator = queryParams.get("operator") || "";
-    const value = queryParams.get("filter") || "";
+    const { field, value, operator } = getFilterModelFromURL();
+
     if (value) {
       setFilterModel({
         items: [
@@ -81,71 +78,19 @@ export default function ArtistTable() {
   }, []);
 
   useEffect(() => {
-    let value = filterModel.items.length
-        ? filterModel.items[0].value
-        : '';
-
-    const {field, operator}: GridFilterItem = filterModel.items.length
-    ? filterModel.items[0]
-    : {} as GridFilterItem;
-
-
-    if (!value) {
-      setFilteredData(artistList)
-      return
-    }
-
-    const filtered = artistList.filter((artist) => {
-
-      if (!isNaN(Number(value))) {
-        value = Number(value);
-      }
-
-      const itemValue = artist[field as keyof artistType];
-
-      switch (operator) {
-        case "equals":
-          return itemValue === value;
-        case "notEquals":
-          return itemValue !== value;
-        case "contains":
-          return typeof itemValue === "string" && itemValue.toLowerCase().includes(value.toLowerCase());
-        case "startsWith":
-          return typeof itemValue === "string" && itemValue.toLowerCase().startsWith(value.toLowerCase());
-        case "endsWith":
-          return typeof itemValue === "string" && itemValue.toLowerCase().endsWith(value.toLowerCase());
-        default:
-          return true;
-      }
-    }
-
-    );
+    const filtered = filterArtists(artistList, filterModel)
 
     setFilteredData(filtered);
   }, [artistList, filterModel]);
 
-  const updateURL = (filterModel: GridFilterModel) => {
-    const queryParams = new URLSearchParams(window.location.search);
-    if (filterModel.items.length > 0) {
-        const { field, operator, value } = filterModel.items[0];
-        queryParams.set("filter", value);
-        queryParams.set("field", field);
-        queryParams.set("operator", operator);
-    } else {
-        queryParams.delete("filter");
-        queryParams.delete("field");
-        queryParams.delete("operator");
-    }
-    window.history.pushState(null, "", `?${queryParams.toString()}`);
-  };
-
   const handleFilterModelChange = (newFilterModel: GridFilterModel) => {
     setFilterModel(newFilterModel);
-    updateURL(newFilterModel);
+    updateURLParams(newFilterModel, page);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+    updateURLParams(filterModel, newPage)
   };
 
   return (

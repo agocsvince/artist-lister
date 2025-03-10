@@ -2,7 +2,7 @@ const ARTIST_LIST_URL = "https://exam.api.fotex.net/api/artists?include_image=tr
 
 export default async function getArtistList(page: number) {
   try {
-    const response = await fetch(`${ARTIST_LIST_URL}&page=${page}`, {headers: { "Accept": '*/*'}});
+    const response = await fetch(`${ARTIST_LIST_URL}&page=${page}`);
 
     if (!response.ok) {
       throw new Error(response.statusText)
