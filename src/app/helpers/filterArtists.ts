@@ -10,7 +10,7 @@ const filterArtists = (artistList: artistType[], filterModel: GridFilterModel) =
   ? filterModel.items[0]
   : {} as GridFilterItem;
 
-  if (!value) {
+  if (!value || !field || !operator) {
     return artistList
   }
 
