@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import { DataGrid, GridFilterModel } from "@mui/x-data-grid";
+import { DataGrid, GridFilterItem, GridFilterModel } from "@mui/x-data-grid";
 import Image from "next/image";
 import getArtistList from "../helpers/getArtistList";
 
@@ -56,7 +56,6 @@ export default function ArtistTable() {
     }
 
     getData()
-    console.log(page)
 
     return () => {
       setArtistList([])
@@ -82,21 +81,48 @@ export default function ArtistTable() {
   }, []);
 
   useEffect(() => {
-    const filterValue = filterModel.items.length
+    let value = filterModel.items.length
         ? filterModel.items[0].value
-        : "";
+        : '';
 
-    if (!filterValue) {
+    const {field, operator}: GridFilterItem = filterModel.items.length
+    ? filterModel.items[0]
+    : {} as GridFilterItem;
+
+
+    if (!value) {
       setFilteredData(artistList)
       return
     }
 
-    const filtered = artistList.filter((artist) =>
-        artist.name.toLowerCase().includes(filterValue.toLowerCase())
+    const filtered = artistList.filter((artist) => {
+
+      if (!isNaN(Number(value))) {
+        value = Number(value);
+      }
+
+      const itemValue = artist[field as keyof artistType];
+
+      switch (operator) {
+        case "equals":
+          return itemValue === value;
+        case "notEquals":
+          return itemValue !== value;
+        case "contains":
+          return typeof itemValue === "string" && itemValue.toLowerCase().includes(value.toLowerCase());
+        case "startsWith":
+          return typeof itemValue === "string" && itemValue.toLowerCase().startsWith(value.toLowerCase());
+        case "endsWith":
+          return typeof itemValue === "string" && itemValue.toLowerCase().endsWith(value.toLowerCase());
+        default:
+          return true;
+      }
+    }
+
     );
 
     setFilteredData(filtered);
-}, [artistList, filterModel]);
+  }, [artistList, filterModel]);
 
   const updateURL = (filterModel: GridFilterModel) => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -124,7 +150,7 @@ export default function ArtistTable() {
 
   return (
       <Box sx={{ height: "max-content", width: "100%" }}>
-        {artistList.length ? <DataGrid
+         <DataGrid
           onFilterModelChange={(model) => handleFilterModelChange(model)}
           filterModel={filterModel}
           rows={filteredData}
@@ -132,10 +158,11 @@ export default function ArtistTable() {
           paginationModel={{ page: pagination.current_page - 1, pageSize: pagination.per_page }}
           pagination
           paginationMode="server"
-          pageSizeOptions={[50]}
           rowCount={pagination.total_items}
+          pageSizeOptions={[50]}
+          filterMode="server"
           onPaginationModelChange={(pageData: { page: number, pageSize: number}) => handlePageChange(pageData.page + 1)}
-        /> : <span className="flex justify-center items-center w-full h-full text-black">No data available</span>}
+        /> 
       </Box>
   );
 };
