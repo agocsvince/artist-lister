@@ -25,10 +25,12 @@ const filterArtists = (artistList: artistType[], filterModel: GridFilterModel) =
     switch (operator) {
       case "equals":
         return itemValue === value;
-      case "notEquals":
+      case "doesNotEqual":
         return itemValue !== value;
       case "contains":
         return typeof itemValue === "string" && itemValue.toLowerCase().includes(value.toLowerCase());
+      case "doesNotContain":
+        return typeof itemValue === "string" && !itemValue.toLowerCase().includes(value.toLowerCase());
       case "startsWith":
         return typeof itemValue === "string" && itemValue.toLowerCase().startsWith(value.toLowerCase());
       case "endsWith":
