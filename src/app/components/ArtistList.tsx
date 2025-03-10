@@ -54,10 +54,13 @@ export default function ArtistTable() {
       const page = Number(queryParams.get("page")) || 1;
 
       const result = await getArtistList(page);
-      const { data, pagination: paginationData = {} } = result || { data: [], pagination: {} };
+      const { 
+        data = [], 
+        pagination: paginationData = {} as paginationResponseType 
+      } = result as { data: artistType[], pagination: paginationResponseType}
 
-      setArtistList(data || [])
-      setPagination(paginationData || {})
+      setArtistList(data)
+      setPagination(paginationData)
     }
 
     getData()
