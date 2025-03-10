@@ -8,13 +8,13 @@ import getArtistList from "../helpers/getArtistList";
 
 import { GridColDef } from "@mui/x-data-grid";
 import { getFilterModelFromURL, updateURLParams } from "../helpers/handleURLParameter";
-import { artistType, paginationType } from "../constants";
+import { artistType, paginationModelType, paginationResponseType } from "../types";
 import filterArtists from "../helpers/filterArtists";
 
 const columns: GridColDef<artistType>[] = [
-  { field: "id", headerName: "ID", width: 90 },
-  { field: "name", headerName: "Név", width: 200 },
-  { field: "albumCount", headerName: "Albumok száma", width: 120 },
+  { field: "id", headerName: "ID", maxWidth: 90, minWidth: 50 },
+  { field: "name", headerName: "Név", maxWidth: 200, minWidth: 100 },
+  { field: "albumCount", headerName: "Albumok száma", maxWidth: 120, minWidth: 70 },
   {
       field: "portrait",
       headerName: "Portré",
@@ -33,10 +33,16 @@ const columns: GridColDef<artistType>[] = [
 const emptyFilterModel = {
   items: []
 }
+const emptyPaginationModel = {
+  current_page: 1,
+  total_pages: 1,
+  per_page: 50,
+  total_items: 50
+}
 
 export default function ArtistTable() {
     const [artistList, setArtistList] = useState<artistType[]>([])
-    const [pagination, setPagination] = useState<paginationType>({} as paginationType)
+    const [pagination, setPagination] = useState<paginationResponseType>(emptyPaginationModel)
     const [page, setPage] = useState<number>(pagination.current_page || 1);
 
     const [filteredData, setFilteredData] = useState<artistType[]>(artistList);
@@ -106,7 +112,8 @@ export default function ArtistTable() {
           rowCount={pagination.total_items}
           pageSizeOptions={[50]}
           filterMode="server"
-          onPaginationModelChange={(pageData: { page: number, pageSize: number}) => handlePageChange(pageData.page + 1)}
+          onPaginationModelChange={(pageData: paginationModelType
+          ) => handlePageChange(pageData.page + 1)}
         /> 
       </Box>
   );

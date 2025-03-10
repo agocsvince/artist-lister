@@ -11,7 +11,6 @@ const updateURLParams = (filterModel: GridFilterModel, page: number) => {
       queryParams.delete("filter");
       queryParams.delete("field");
       queryParams.delete("operator");
-      queryParams.delete("page");
   }
   queryParams.set("page", page.toString());
 
@@ -24,7 +23,7 @@ const getFilterModelFromURL = () => {
   const operator = queryParams.get("operator") || "";
   const value = queryParams.get("filter") || "";
 
-  return { field, value, operator};
+  return { field, value, operator };
 }
 
 export { updateURLParams, getFilterModelFromURL }

@@ -1,5 +1,5 @@
 import { GridFilterItem, GridFilterModel } from "@mui/x-data-grid";
-import { artistType } from "../constants";
+import { artistType } from "../types";
 
 const filterArtists = (artistList: artistType[], filterModel: GridFilterModel) => {
   let value = filterModel.items.length
