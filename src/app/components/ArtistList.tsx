@@ -32,9 +32,7 @@ const columns: GridColDef<artistType>[] = [
               height={50}
           />
       )
-  },
-  {field: "type", headerName: "Előadó típus", width: 150}
-
+  }
 ];
 
 export default function ArtistTable() {
@@ -122,13 +120,13 @@ export default function ArtistTable() {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    console.log(newPage)
   };
 
   return (
-      <Box sx={{ height: 500, width: "100%" }}>
-        <DataGrid
+      <Box sx={{ height: "max-content", width: "100%" }}>
+        {artistList.length ? <DataGrid
           onFilterModelChange={(model) => handleFilterModelChange(model)}
+          filterModel={filterModel}
           rows={filteredData}
           columns={columns}
           paginationModel={{ page: pagination.current_page - 1, pageSize: pagination.per_page }}
@@ -137,7 +135,7 @@ export default function ArtistTable() {
           pageSizeOptions={[50]}
           rowCount={pagination.total_items}
           onPaginationModelChange={(pageData: { page: number, pageSize: number}) => handlePageChange(pageData.page + 1)}
-        />
+        /> : <span className="flex justify-center items-center w-full h-full text-black">No data available</span>}
       </Box>
   );
 };

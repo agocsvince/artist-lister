@@ -7,12 +7,13 @@ export default async function getArtistList(page: number) {
     const { data, pagination } = json
 
     if (!response.ok) {
-      console.error(`An error occured: ${json.message}`)
-      return
+      throw new Error(json.message)
     }
   
     return { data, pagination }
   } catch (error) {
     console.error(error)
+
+    return { data: []}
   }
 }
