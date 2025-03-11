@@ -12,7 +12,6 @@ import { artistType, paginationModelType, paginationResponseType } from "../type
 import filterArtists from "../helpers/filterArtists";
 
 const columns: GridColDef<artistType>[] = [
-  { field: "id", headerName: "ID", maxWidth: 90, minWidth: 50 },
   { field: "name", headerName: "Név", maxWidth: 200, minWidth: 100 },
   { field: "albumCount", headerName: "Albumok száma", maxWidth: 120, minWidth: 70 },
   {
